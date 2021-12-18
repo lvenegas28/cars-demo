@@ -1,0 +1,135 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<hr />
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="row">
+                <div class="col-md-12">
+                    <input type="text" placeholder="Enter vehicle brand" class="form-control" id="brand" name="brand" value="" />
+                </div>
+            </div>
+            <br />
+            <div class="row">
+                <div class="col-md-12">
+                    <input type="text" placeholder="Enter vehicle model" class="form-control" id="model" name="model" value="" />
+                </div>
+            </div>
+            <br />
+            <div class="row ">
+                <div class="col-md-12">
+                    <label for="year">Select vechicle year: </label>
+                    <select class="form-control" id="year" name="year">
+                        <option value="2021">2021</option>
+                        <option value="2020">2020</option>
+                        <option value="2019">2019</option>
+                        <option value="2018">2018</option>
+                        <option value="2017">2017</option>
+                    </select>
+                </div>
+            </div>
+            <br />
+            <div class="row">
+                <div class="col-md-12">
+                    <button type="button" class="btn btn-primary" onclick="saveCar()">Save</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <table id="car-table" class="table table-responsive table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">Brand</th>
+                        <th scope="col">Model</th>
+                        <th scope="col">Year</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+@section scripts {
+    <script type="text/javascript">
+
+        document.addEventListener("DOMContentLoaded", function () {
+            console.log("DOM Init");
+            populateCars();
+        })
+
+        function saveCar() {
+
+            var brand = document.getElementById("brand").value;
+            var model = document.getElementById("model").value;
+            var yearDropdown = document.getElementById("year");
+            var year = yearDropdown.options[yearDropdown.selectedIndex].value;
+
+            var newCar = {
+                brand: brand,
+                model: model,
+                year: year
+            }
+
+            var request = new XMLHttpRequest();
+            request.open("POST", "Save");
+            request.setRequestHeader("Content-type", "application/json");
+
+            request.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+
+                    // Add new record in the cars table
+                    console.log(this.response);
+                    var createdCar = JSON.parse(this.response.toString());
+
+                    var carTbl = document.getElementById("car-table");
+                    addCarRow(carTbl, createdCar);
+                }
+            };
+
+            request.send(JSON.stringify(newCar));
+        }
+
+
+        function populateCars() {
+            var request = new XMLHttpRequest();
+            request.open("GET", "GetCars");
+            request.setRequestHeader("Content-type", "application/json");
+            request.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    console.log(this.response);
+
+                    var carTbl = document.getElementById("car-table");
+                    var cars = JSON.parse(this.response.toString());
+
+                    for (var i = 0; i < cars.length; i++) {
+                        addCarRow(carTbl, cars[i]);
+                    }
+                }
+            }
+
+            request.send();
+        }
+
+        function addCarRow(table, carToAdd) {
+            var tableBody = table.getElementsByTagName("tbody")[0];
+            var newRow = tableBody.insertRow();
+
+            var brandCell = newRow.insertCell(0);
+            brandCell.innerHTML = carToAdd.brand;
+
+            var modelCell = newRow.insertCell(1);
+            modelCell.innerHTML = carToAdd.model;
+
+            var yearCell = newRow.insertCell(2);
+            yearCell.innerHTML = carToAdd.year;
+        }
+    </script>
+}
+
